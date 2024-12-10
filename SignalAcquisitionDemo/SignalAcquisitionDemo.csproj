@@ -86,10 +86,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Helper\AnalysisData.cs" />
+    <Compile Include="Helper\DataHelper.cs" />
     <Compile Include="Helper\LogHelper.cs" />
-    <Compile Include="Models\AnalysisData.cs" />
-    <Compile Include="Models\DataHelper.cs" />
-    <Compile Include="Models\SerialPortHelper.cs" />
+    <Compile Include="Helper\SerialPortHelper.cs" />
+    <Compile Include="Models\DataModel.cs" />
+    <Compile Include="Models\GroupBoxData.cs" />
     <Compile Include="Resources\Styles\BulletButtonStyle.xaml.cs">
       <DependentUpon>BulletButtonStyle.xaml</DependentUpon>
     </Compile>

@@ -27,6 +27,10 @@ using SignalAcquisitionDemo.Models;
 using SignalAcquisitionDemo.Properties;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using System.IO.Ports;
+using System.Windows.Shapes;
+using System.Threading;
+using SignalAcquisitionDemo.Styles;
+using Microsoft.Maps.MapControl.WPF;
 
 namespace SignalAcquisitionDemo.Views
 {
@@ -35,17 +39,17 @@ namespace SignalAcquisitionDemo.Views
     /// </summary>
     public partial class MainView : UserControl
     {
-        public List<Point> Data1 = new List<Point>();
-        public List<Point> Data2 = new List<Point>();
-        public List<Point> Data3 = new List<Point>();
-        public List<Point> Data4 = new List<Point>();
         private List<string> Items = new List<string>() { "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9" };
-        public Timer timer = null;
-        public Timer sendControlTimer = null;
-        private bool isConnect;
+        private static bool isConnect;
 
-
-
+        public static bool isDevice1Receive = false;
+        public static bool isDevice1TimerEnd = false;
+        public static bool isDevice2Receive = false;
+        public static bool isDevice2TimerEnd = false;
+        public const int ChannelInterval = 1000 / 20;// 20Hz
+        private static System.Timers.Timer device1Timer;
+        private static System.Timers.Timer device2Timer;
+        #region 属性
         public bool IsConnect
         {
             get { return isConnect; }
@@ -56,6 +60,33 @@ namespace SignalAcquisitionDemo.Views
             }
         }
 
+        private List<ChannelPropertyData> _ChannelData = new List<ChannelPropertyData>();
+        public List<ChannelPropertyData> ChannelData
+        {
+            get { return _ChannelData; }
+            set { _ChannelData = value; }
+        }
+
+
+        private List<SwitchPropertyData> _SwitchReadData = new List<SwitchPropertyData>();
+        public List<SwitchPropertyData> SwitchReadData
+        {
+            get { return _SwitchReadData; }
+            set { _SwitchReadData = value; }
+        }
+
+
+        private List<SwitchPropertyData> _SwitchWriteData = new List<SwitchPropertyData>();
+        public List<SwitchPropertyData> SwitchWriteData
+        {
+            get { return _SwitchWriteData; }
+            set { _SwitchWriteData = value; }
+        }
+
+
+        #endregion
+
+
 
         public MainView()
         {
@@ -65,19 +96,105 @@ namespace SignalAcquisitionDemo.Views
 
         private void Init()
         {
-            Items= SerialPort.GetPortNames().ToList();
+            Items = SerialPort.GetPortNames().ToList();
             Cmb_Com.ItemsSource = Items;
             this.Cmb_Com.SelectedIndex = Items.IndexOf(Settings.Default.COM);
             IsConnect = false;
-            CreateChannel(8, 8);
-            CreateSwitchRead(4, 4);
-            CreateSwitchWrite(4, 4);
+            device1Timer = new System.Timers.Timer(ChannelInterval);
+            device1Timer.Elapsed += Device1Timer_Elapsed;
+            device2Timer = new System.Timers.Timer(ChannelInterval);
+            device2Timer.Elapsed += Device2Timer_Elapsed;
+            CreateChannel(10, 8,80);
+            CreateSwitchRead(4, 4, 16);
+            CreateSwitchWrite(4, 4, 16);
+            SerialPortHelper.Init(ReceiveDataAction, Settings.Default.COM, Settings.Default.BaudRate);// portName: "COM2");
+            Task.Run(() =>StartDevice1Timer());
+            Task.Run(() => StartDevice2Timer());
 
+            /*  Task.Run(() =>
+              {
+                  while (true)
+                  {
+                      if (!isConnect)
+                      {
+                          Thread.Sleep(ChannelInterval);
+                          continue;
+                      }
+
+                      isDevice1Receive = false;
+                      while (!isDevice1Receive)
+                      {
+                          if(!isConnect)
+                              break;
+                          Thread.Sleep(5);
+                      }
+
+                      if (isDevice1Receive)
+                      {
+                          for (int i = 0; i < 64; i++)
+                          {
+                              ChannelData[i].TextValue = 0;
+                          }
+                          isDevice1Receive = false;
+                      }
+                      if (isDevice2Receive)
+                      {
+                          for (int i = 64; i < ChannelData.Count; i++)
+                          {
+                              ChannelData[i].TextValue = 0;
+                          }
+                      }
+                  }
+              });*/
         }
 
-        private void CreateSwitchWrite(int rows, int columns)
-        {
 
+        private void Device1Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            //isDevice1TimerEnd = true;
+            //if (isDevice1Receive)
+            StartDevice1Timer();
+        }
+
+        private void Device2Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            StartDevice2Timer();
+        }
+
+        private static void StartDevice1Timer()
+        {
+            while (true)
+            {
+                if (!isConnect)
+                {
+                    Thread.Sleep(ChannelInterval);
+                    continue;
+                }
+                SerialPortHelper.SendData(SendDataType.Device1);
+                device1Timer.Start();
+                isDevice1Receive = false;
+                isDevice1TimerEnd = false;
+            }
+        }
+
+        private static void StartDevice2Timer()
+        {
+            while (true)
+            {
+                if (!isConnect)
+                {
+                    Thread.Sleep(ChannelInterval);
+                    continue;
+                }
+                SerialPortHelper.SendData(SendDataType.Device2);
+                device2Timer.Start();
+                isDevice2Receive = false;
+                isDevice2TimerEnd = false;
+            }
+        }
+
+        private void CreateSwitchWrite(int rows, int columns,int max)
+        {
             for (int i = 0; i < rows; i++)
             {
                 Grid_SwitchWrite.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
@@ -88,29 +205,43 @@ namespace SignalAcquisitionDemo.Views
                 Grid_SwitchWrite.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             }
 
-            var random = new Random();
             for (int row = 0; row < rows; row++)
             {
                 for (int col = 0; col < columns; col++)
                 {
+                    var index = row * columns + col + 1;
+                    if(index> max)
+                        break;
+                    var groupData = new SwitchPropertyData() { Value = false };
+                    SwitchWriteData.Add(groupData);
                     var groupBox = new GroupBox
                     {
-                        Margin = new Thickness(5),
+                        Margin = new Thickness(2),
                         Header = new TextBlock
                         {
-                            Text = $"1-CH{row * columns + col + 1}",
+                            Text = $"CH{index}",
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             FontSize = 14
                         },
-                        Content = new TextBlock
+                        Content = new BulletButton()
                         {
-                            Text = (random.Next(0, 100000) / 1000.0).ToString("0.000"),
+                            Padding = new Thickness(0),
+                            Height= 30
+                        }
+                        /*new TextBlock
+                        {
+                            //Text = groupData// (random.Next(0, 100000) / 1000.0).ToString("0.000"),
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             FontSize = 18
-                        }
+                        }*/
                     };
+                    var bulletButton = (BulletButton)groupBox.Content;
+                    bulletButton.SetBinding(BulletButton.IsCheckedProperty, new System.Windows.Data.Binding("Value")
+                    {
+                        Source = groupData
+                    });
 
                     Grid.SetRow(groupBox, row);
                     Grid.SetColumn(groupBox, col);
@@ -119,7 +250,7 @@ namespace SignalAcquisitionDemo.Views
             }
         }
 
-        private void CreateSwitchRead(int rows, int columns)
+        private void CreateSwitchRead(int rows, int columns,int max)
         {
 
             for (int i = 0; i < rows; i++)
@@ -132,30 +263,44 @@ namespace SignalAcquisitionDemo.Views
                 Grid_SwitchRead.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             }
 
-            var random = new Random();
+            //var random = new Random();
             for (int row = 0; row < rows; row++)
             {
                 for (int col = 0; col < columns; col++)
                 {
+                    var index = row * columns + col + 1;
+                    if (index > max)
+                        break;
+                    var groupData = new SwitchPropertyData() { Value = false };
+                    SwitchReadData.Add(groupData);
                     var groupBox = new GroupBox
                     {
-                        Margin = new Thickness(5),
+                        Margin = new Thickness(2),
                         Header = new TextBlock
                         {
-                            Text = $"1-CH{row * columns + col + 1}",
+                            Text = $"1-CH{index}",
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             FontSize = 14
                         },
-                        Content = new TextBlock
+                        Content = new BulletButton()
                         {
-                            Text = (random.Next(0, 100000) / 1000.0).ToString("0.000"),
+                            Padding = new Thickness(0),
+                            Height= 25
+                        }
+                        /*new TextBlock
+                        {
+                            //Text = groupData// (random.Next(0, 100000) / 1000.0).ToString("0.000"),
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             FontSize = 18
-                        }
+                        }*/
                     };
-
+                    var bulletButton = (BulletButton)groupBox.Content;
+                    bulletButton.SetBinding(BulletButton.IsCheckedProperty, new System.Windows.Data.Binding("Value")
+                    {
+                        Source = groupData
+                    });
                     Grid.SetRow(groupBox, row);
                     Grid.SetColumn(groupBox, col);
                     Grid_SwitchRead.Children.Add(groupBox);
@@ -163,7 +308,7 @@ namespace SignalAcquisitionDemo.Views
             }
         }
 
-        private void CreateChannel(int rows, int columns)
+        private void CreateChannel(int rows, int columns,int max)
         {
             for (int i = 0; i < rows; i++)
             {
@@ -175,30 +320,40 @@ namespace SignalAcquisitionDemo.Views
                 Grid_PCI1622C.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             }
 
-            var random = new Random();
+            //var random = new Random();
             for (int row = 0; row < rows; row++)
             {
                 for (int col = 0; col < columns; col++)
                 {
+                    var index = row * columns + col + 1;
+                    if (index > max)
+                        break;
+                    var groupData = new ChannelPropertyData() { Value = 0 };
+                    ChannelData.Add(groupData);
                     var groupBox = new GroupBox
                     {
-                        Margin = new Thickness(5),
+                        Margin = new Thickness(2),
                         Header = new TextBlock
                         {
-                            Text = $"1-CH{row * columns + col + 1}",
+                            Text = $"{index/64+1}-CH{index}",
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             FontSize = 14
                         },
                         Content = new TextBlock
                         {
-                            Text = (random.Next(0, 100000) / 1000.0).ToString("0.000"),
+                            //Text = (random.Next(0, 100000) / 1000.0).ToString("0.000"),
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             FontSize = 18
                         }
                     };
-
+                    // 绑定TextBlock的Text属性
+                    var textBlock = (TextBlock)groupBox.Content;
+                    textBlock.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding("Value")
+                    {
+                        Source = groupData
+                    });
                     Grid.SetRow(groupBox, row);
                     Grid.SetColumn(groupBox, col);
                     Grid_PCI1622C.Children.Add(groupBox);
@@ -206,6 +361,50 @@ namespace SignalAcquisitionDemo.Views
             }
         }
 
+
+        private void ReceiveDataAction(DataType dataType, DataModel data)
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    switch (data.DataType)
+                    {
+                        case DataType.PCI1622C:
+                            var pic1622CData = data as PCI1622C;
+                            if (pic1622CData == null)
+                                break;
+                            if (pic1622CData.DeviceNumber == 1)
+                            {
+                                isDevice1Receive = true;
+                                for (int i = 0; i < 64; i++)
+                                {
+                                    ChannelData[i].Value = pic1622CData.Data[i];
+                                }
+                            }
+                            else if (pic1622CData.DeviceNumber == 2)
+                            {
+                                isDevice2Receive = true;
+                                for (int i = 64; i < ChannelData.Count; i++)
+                                {
+                                    ChannelData[i].Value = pic1622CData.Data[i];
+                                }
+                            }
+                            break;
+                        case DataType.PCI1730U:
+                            break;
+                        case DataType.Unknown:
+                        default:
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    LogHelper.Trace($"更新界面数据失败！DataType:{data.DataType} R:{e.Message}");
+                }
+            });
+
+        }
 
         /* Cmb_Com.ItemsSource = Items;
 this.Cmb_Com.SelectedIndex = Items.IndexOf(Settings.Default.COM);
@@ -667,10 +866,34 @@ Data1 = SetOriginalData(data, Data1, LineG1);*/
          SerialPortHelper.test(bytes);*/
 
 
+        private void TB_Start_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (this.TB_Start.IsChecked == true)
+                {
+                    SerialPortHelper.Open();
+                    Cmb_Com.IsEnabled = false;
+                    //InitLinG();
+                }
+                else
+                {
+                    Cmb_Com.IsEnabled = true;
+                    SerialPortHelper.Close();
+                    IsConnect = false;
+                }
+            }
+            catch (Exception err)
+            {
+                LogHelper.Error($"开始点击开始按钮异常！R:{err.Message}");
+                MessageBox.Show("发生未知异常！请重启软件。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+        }
 
         private void Cmb_Com_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-           /* try
+            try
             {
                 if (Cmb_Com.SelectedIndex < 0 || Cmb_Com.SelectedIndex >= Items.Count)
                     return;
@@ -684,12 +907,7 @@ Data1 = SetOriginalData(data, Data1, LineG1);*/
                 MessageBox.Show("发生未知异常！请重启软件。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-*/
-    }
 
-        private void TB_Start_Click(object sender, RoutedEventArgs e)
-        {
 
-        }
     }
 }
