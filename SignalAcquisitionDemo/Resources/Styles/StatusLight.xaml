@@ -1,0 +1,126 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:SignalAcquisitionDemo.Styles">
+    <Style TargetType="{x:Type local:StatusLight}">
+        <Setter Property="BorderBrush" Value="Black" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderThickness" Value="1,1,1,1" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:StatusLight}">
+                    <Grid>
+                        <Ellipse Fill="{TemplateBinding BorderBrush}" />
+                        <Grid x:Name="Grd_Elp" Margin="{TemplateBinding BorderThickness}">
+                            <Ellipse
+                                x:Name="Elp_B"
+                                Fill="{Binding FalseBrush, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged}"
+                                Stroke="Transparent"
+                                StrokeThickness="0" />
+                            <Ellipse x:Name="Elp_S" Visibility="Visible">
+                                <Ellipse.Fill>
+                                    <RadialGradientBrush>
+                                        <GradientStop Offset="1" Color="#54000000" />
+                                        <GradientStop Color="#00FFFFFF" />
+                                    </RadialGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <Ellipse x:Name="Elp_S2" Visibility="Visible">
+                                <Ellipse.Fill>
+                                    <RadialGradientBrush>
+                                        <GradientStop Offset="1" Color="#54000000" />
+                                        <GradientStop Color="#00FFFFFF" />
+                                    </RadialGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+
+                            <Ellipse
+                                x:Name="Elp_T"
+                                Margin="10,10,48,52"
+                                Opacity="0.7">
+                                <Ellipse.Fill>
+                                    <RadialGradientBrush>
+                                        <GradientStop Offset="1" Color="#00E8F5FD" />
+                                        <GradientStop Offset="0" Color="#55FFFFFF" />
+                                    </RadialGradientBrush>
+                                    <!--<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#00E8F5FD" Offset="1" />
+                                        <GradientStop Color="#55D9F0FC" Offset="0" />
+                                    </LinearGradientBrush>-->
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </Grid>
+
+                        <Grid x:Name="Grd_Content" Visibility="{Binding ContentVisbility, RelativeSource={RelativeSource TemplatedParent}}">
+                            <Label
+                                x:Name="Lbl_True"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center"
+                                Content="{Binding TrueContent, RelativeSource={RelativeSource TemplatedParent}}"
+                                FontFamily="{TemplateBinding FontFamily}"
+                                FontSize="{TemplateBinding FontSize}"
+                                FontStyle="{TemplateBinding FontStyle}"
+                                FontWeight="{TemplateBinding FontWeight}"
+                                ForceCursor="{TemplateBinding ForceCursor}"
+                                Foreground="{TemplateBinding Foreground}"
+                                Visibility="Collapsed" />
+                            <Label
+                                x:Name="Lbl_False"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center"
+                                Content="{Binding FalseContent, RelativeSource={RelativeSource TemplatedParent}}"
+                                FontFamily="{TemplateBinding FontFamily}"
+                                FontSize="{TemplateBinding FontSize}"
+                                FontStyle="{TemplateBinding FontStyle}"
+                                FontWeight="{TemplateBinding FontWeight}"
+                                ForceCursor="{TemplateBinding ForceCursor}"
+                                Foreground="{TemplateBinding Foreground}"
+                                Visibility="Visible" />
+                        </Grid>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Value" Value="True">
+                            <Setter TargetName="Elp_B" Property="Fill" Value="{Binding TrueBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+                            <Setter TargetName="Lbl_True" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Lbl_False" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Elp_S2" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Elp_T" Property="Opacity" Value="0.9" />
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsReadOnly" Value="false" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.Setters>
+                                <Setter Property="Cursor" Value="Hand" />
+                            </MultiTrigger.Setters>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsPressed" Value="true" />
+                                <Condition Property="IsReadOnly" Value="false" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.Setters>
+                                <Setter TargetName="Grd_Content" Property="UIElement.RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform X="0.8" Y="0.8" />
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="Grd_Elp" Property="UIElement.RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform X="0.8" Y="0.8" />
+                                    </Setter.Value>
+                                </Setter>
+                            </MultiTrigger.Setters>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
