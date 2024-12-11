@@ -102,8 +102,8 @@ namespace SignalAcquisitionDemo.Views
             device1Timer.Elapsed += Device1Timer_Elapsed;
             device2Timer = new System.Timers.Timer(ChannelInterval);
             device2Timer.Elapsed += Device2Timer_Elapsed;
-            CreateChannel(10, 8,80);
-            CreateSwitchRead(4, 4, 16);
+            CreateChannel(10, 8, 80);
+            CreateSwitchRead();
             CreateSwitchWrite(4, 4, 16);
             SerialPortHelper.Init(ReceiveDataAction, Settings.Default.COM, Settings.Default.BaudRate);// portName: "COM2");
             new Task(() => StartDevice1Timer());
@@ -191,124 +191,132 @@ namespace SignalAcquisitionDemo.Views
             }
         }
 
-        private void CreateSwitchWrite(int rows, int columns,int max)
+        private void CreateSwitchRead()//int rows, int columns, int max)
         {
-            for (int i = 0; i < rows; i++)
-            {
-                Grid_SwitchWrite.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            }
-
-            for (int j = 0; j < columns; j++)
-            {
-                Grid_SwitchWrite.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            }
-
-            for (int row = 0; row < rows; row++)
-            {
-                for (int col = 0; col < columns; col++)
-                {
-                    var index = row * columns + col + 1;
-                    if(index> max)
-                        break;
-                    var groupData = new SwitchPropertyData() { Value = false };
-                    SwitchWriteData.Add(groupData);
-                    var groupBox = new GroupBox
-                    {
-                        Margin = new Thickness(2),
-                        BorderBrush = new SolidColorBrush(Color.FromArgb(255, 76, 175, 80)),//设置为#4CAF50
-                        Header = new TextBlock
-                        {
-                            Text = "CH"+index,
-                            HorizontalAlignment = HorizontalAlignment.Center,
-                            VerticalAlignment = VerticalAlignment.Center,
-                            FontSize = 14
-                        },
-                        Content = new BulletButton()
-                        {
-                            Padding = new Thickness(0),
-                            Height= 30
-                        }
-                        /*new TextBlock
-                        {
-                            //Text = groupData// (random.Next(0, 100000) / 1000.0).ToString("0.000"),
-                            HorizontalAlignment = HorizontalAlignment.Center,
-                            VerticalAlignment = VerticalAlignment.Center,
-                            FontSize = 18
-                        }*/
-                    };
-                    var bulletButton = (BulletButton)groupBox.Content;
-                    bulletButton.SetBinding(BulletButton.IsCheckedProperty, new System.Windows.Data.Binding("Value")
-                    {
-                        Source = groupData
-                    });
-
-                    Grid.SetRow(groupBox, row);
-                    Grid.SetColumn(groupBox, col);
-                    Grid_SwitchWrite.Children.Add(groupBox);
-                }
-            }
+            var grid1 = AddSwitchChannel(0);
+            Grid.SetColumn(grid1, 0);
+            Grid_SwitchRead.Children.Add(grid1);
+            var grid2 = AddSwitchChannel(8);
+            Grid.SetColumn(grid2, 1);
+            Grid_SwitchRead.Children.Add(grid2);
         }
 
-        private void CreateSwitchRead(int rows, int columns,int max)
+        private void CreateSwitchWrite(int rows, int columns, int max)
         {
-
-            for (int i = 0; i < rows; i++)
-            {
-                Grid_SwitchRead.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            }
-
-            for (int j = 0; j < columns; j++)
-            {
-                Grid_SwitchRead.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            }
-
-            //var random = new Random();
-            for (int row = 0; row < rows; row++)
-            {
-                for (int col = 0; col < columns; col++)
-                {
-                    var index = row * columns + col + 1;
-                    if (index > max)
-                        break;
-                    var groupData = new SwitchPropertyData() { Value = false };
-                    SwitchReadData.Add(groupData);
-                    var groupBox = new GroupBox
-                    {
-                        Margin = new Thickness(2),
-                        BorderBrush = new SolidColorBrush(Color.FromArgb(255, 76, 175, 80)),//设置为#4CAF50
-                        Header = new TextBlock
-                        {
-                            Text = "1-CH" +index,
-                            HorizontalAlignment = HorizontalAlignment.Center,
-                            VerticalAlignment = VerticalAlignment.Center,
-                            FontSize = 14
-                        },
-                        Content = new BulletButton()
-                        {
-                            Padding = new Thickness(0),
-                            Height= 25
-                        }
-                        /*new TextBlock
-                        {
-                            //Text = groupData// (random.Next(0, 100000) / 1000.0).ToString("0.000"),
-                            HorizontalAlignment = HorizontalAlignment.Center,
-                            VerticalAlignment = VerticalAlignment.Center,
-                            FontSize = 18
-                        }*/
-                    };
-                    var bulletButton = (BulletButton)groupBox.Content;
-                    bulletButton.SetBinding(BulletButton.IsCheckedProperty, new System.Windows.Data.Binding("Value")
-                    {
-                        Source = groupData
-                    });
-                    Grid.SetRow(groupBox, row);
-                    Grid.SetColumn(groupBox, col);
-                    Grid_SwitchRead.Children.Add(groupBox);
-                }
-            }
+            var grid1 = AddSwitchChannel(0, true);
+            Grid.SetColumn(grid1, 0);
+            Grid_SwitchWrite.Children.Add(grid1);
+            var grid2 = AddSwitchChannel(8, true);
+            Grid.SetColumn(grid2, 1);
+            Grid_SwitchWrite.Children.Add(grid2);
         }
 
-        private void CreateChannel(int rows, int columns,int max)
+        private Grid AddSwitchChannel(int startIndex = 0, bool canClick = false)
+        {
+            // 创建嵌套Grid
+            Grid nestedGrid = new Grid
+            {
+                Margin = new Thickness(10),
+                //Background = new SolidColorBrush(Colors.LightGray)
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+
+            // 定义行和列
+            for (int i = 0; i < 9; i++)
+            {
+                nestedGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            }
+
+            for (int j = 0; j < 11; j++)
+            {
+                double w = 2;
+
+                if (j == 10)
+                    w = 4;
+                else if (j == 5)
+                    w = 0.5;
+                else
+                    w = 2;
+                nestedGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(w, GridUnitType.Star) });
+            }
+
+            // 添加标题行内容
+            AddTextBlock(nestedGrid, "通道", 0, 0);
+
+            for (int j = 1; j <= 4; j++)
+            {
+                AddTextBlock(nestedGrid, (9 - j).ToString(), 0, j);
+            }
+
+            for (int j = 6; j <= 9; j++)
+            {
+                AddTextBlock(nestedGrid, (9 - j + 1).ToString(), 0, j);
+            }
+
+            AddTextBlock(nestedGrid, "Hex", 0, 10);
+
+            // 添加其余8行内容
+            for (int i = 1; i <= 8; i++)
+            {
+                // 添加通道编号
+                AddTextBlock(nestedGrid, (startIndex + i).ToString(), i, 0);
+
+                // 添加状态灯
+                for (int j = 1; j <= 8; j++)
+                {
+                    /*Ellipse statusLight = new Ellipse
+                    {
+                        Width = 20,
+                        Height = 20,
+                        Fill = new SolidColorBrush(Colors.Green), // 示例为绿色状态灯
+                        Margin = new Thickness(5)
+                    };*/
+                    StatusLight statusLight = new StatusLight()
+                    {
+                        Width = 30,
+                        Height = 30,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center,
+                    };
+                    if (canClick)
+                        statusLight.MouseDoubleClick += StatusLightMouseLeftButtonDownHandler;
+                    Grid.SetRow(statusLight, i);
+                    Grid.SetColumn(statusLight, j >= 5 ? j + 1 : j);
+                    nestedGrid.Children.Add(statusLight);
+                }
+
+                // 添加十六进制数值
+                AddTextBlock(nestedGrid, "0x" + (i * 10).ToString("X2"), i, 10);
+            }
+
+            return nestedGrid;
+        }
+
+        private void StatusLightMouseLeftButtonDownHandler(object sender, MouseButtonEventArgs e)
+        {
+            var statusLight = sender as StatusLight;
+            statusLight.Value = !statusLight.Value;
+            //发送数据
+        }
+
+        private void AddTextBlock(Grid grid, string text, int row, int column)
+        {
+            TextBlock textBlock = new TextBlock
+            {
+                Text = text,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0)
+            };
+
+            Grid.SetRow(textBlock, row);
+            Grid.SetColumn(textBlock, column);
+            grid.Children.Add(textBlock);
+        }
+
+
+        private void CreateChannel(int rows, int columns, int max)
         {
             for (int i = 0; i < rows; i++)
             {
@@ -336,7 +344,7 @@ namespace SignalAcquisitionDemo.Views
                         BorderBrush = new SolidColorBrush(Color.FromArgb(255, 76, 175, 80)),//设置为#4CAF50
                         Header = new TextBlock
                         {
-                            Text = (index/64+1) +"-CH" +index,
+                            Text = (index / 64 + 1) + "-CH" + index,
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             FontSize = 14
@@ -401,7 +409,7 @@ namespace SignalAcquisitionDemo.Views
                 }
                 catch (Exception e)
                 {
-                    LogHelper.Trace("更新界面数据失败！DataType:"+data.DataType+ "R:"+e.Message);
+                    LogHelper.Trace("更新界面数据失败！DataType:" + data.DataType + "R:" + e.Message);
                 }
             }));
 
@@ -886,7 +894,7 @@ Data1 = SetOriginalData(data, Data1, LineG1);*/
             }
             catch (Exception err)
             {
-                LogHelper.Error("开始点击开始按钮异常！R:"+err.Message);
+                LogHelper.Error("开始点击开始按钮异常！R:" + err.Message);
                 MessageBox.Show("发生未知异常！请重启软件。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
@@ -904,7 +912,7 @@ Data1 = SetOriginalData(data, Data1, LineG1);*/
             }
             catch (Exception err)
             {
-                LogHelper.Error("Cmb_Com_SelectionChanged异常！R:"+err.Message);
+                LogHelper.Error("Cmb_Com_SelectionChanged异常！R:" + err.Message);
                 MessageBox.Show("发生未知异常！请重启软件。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

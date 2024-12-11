@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
         <StackPanel Background="#989898" Orientation="Horizontal">
             <styles:RecSwitch
-                x:Name="TB_Start"
+                x:Name="TB_Start" Click="TB_Start_Click"
                 Width="120"
                 Height="Auto"
                 Margin="10,0"
@@ -59,12 +59,16 @@
             <ComboBox
                 x:Name="Cmb_Com"
                 Width="100"
-                Height="30"
+                Height="35"
                 Padding="5,0"
+                HorizontalAlignment="center"
+                VerticalAlignment="center"
+                HorizontalContentAlignment="center"
+                VerticalContentAlignment="center"
                 BorderBrush="Black"
                 BorderThickness="2"
                 FontSize="16"
-                Foreground="Wheat"
+                Foreground="Black"
                 SelectionChanged="Cmb_Com_SelectionChanged" />
             <!--  Style="{StaticResource MaterialDesignOutlinedComboBox}"  -->
 
@@ -180,7 +184,13 @@
                     Padding="8"
                     HorizontalScrollBarVisibility="Auto"
                     VerticalScrollBarVisibility="Auto">
-                    <Grid x:Name="Grid_SwitchRead" Margin="0" />
+                    <Grid x:Name="Grid_SwitchRead" Margin="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="10*" />
+
+                            <ColumnDefinition Width="10*" />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
                 </ScrollViewer>
             </GroupBox>
 
@@ -199,13 +209,6 @@
                             FontSize="22"
                             Foreground="#04B404"
                             Text="开关量输出通道" />
-                        <Button
-                            Height="25"
-                            Margin="0,0,10,0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            Background="Purple"
-                            Content="发送" />
                     </Grid>
                 </GroupBox.Header>
                 <ScrollViewer
@@ -213,7 +216,13 @@
                     Padding="0"
                     HorizontalScrollBarVisibility="Auto"
                     VerticalScrollBarVisibility="Auto">
-                    <Grid x:Name="Grid_SwitchWrite" Margin="0" />
+                    <Grid x:Name="Grid_SwitchWrite" Margin="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="10*" />
+
+                            <ColumnDefinition Width="10*" />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
                 </ScrollViewer>
             </GroupBox>
 
