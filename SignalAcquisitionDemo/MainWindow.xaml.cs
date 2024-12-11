@@ -13,7 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using LoggerHelp;
+
 
 namespace SignalAcquisitionDemo
 {
@@ -54,7 +54,7 @@ namespace SignalAcquisitionDemo
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            Logger.Info("UpperWaveform");
+            //Logger.Info("UpperWaveform");
             //增加处理
         }
         private void btnMin_Click(object sender, RoutedEventArgs e)

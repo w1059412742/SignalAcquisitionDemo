@@ -6,13 +6,13 @@ public class ChannelPropertyData : INotifyPropertyChanged
 
     public float Value
     {
-        get => _Value;
+        get { return _Value; }
         set
         {
             if (_Value != value)
             {
                 _Value = value;
-                OnPropertyChanged(nameof(_Value));
+               // OnPropertyChanged(nameof(_Value));
             }
         }
     }
@@ -21,7 +21,8 @@ public class ChannelPropertyData : INotifyPropertyChanged
 
     public virtual void OnPropertyChanged(string propertyName)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        if(PropertyChanged!=null)
+        PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
 
@@ -31,13 +32,13 @@ public class SwitchPropertyData : INotifyPropertyChanged
 
     public bool Value
     {
-        get => _Value;
+        get { return _Value; }
         set
         {
             if (_Value != value)
             {
                 _Value = value;
-                OnPropertyChanged(nameof(_Value));
+                //OnPropertyChanged(nameof(_Value));
             }
         }
     }
@@ -46,6 +47,7 @@ public class SwitchPropertyData : INotifyPropertyChanged
 
     public virtual void OnPropertyChanged(string propertyName)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        if(PropertyChanged!=null)
+        PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

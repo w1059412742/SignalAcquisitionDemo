@@ -1,5 +1,4 @@
-﻿using InteractiveDataDisplay.WPF;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,12 +24,11 @@ using System.Xml.Linq;
 using SignalAcquisitionDemo.Helper;
 using SignalAcquisitionDemo.Models;
 using SignalAcquisitionDemo.Properties;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+
 using System.IO.Ports;
 using System.Windows.Shapes;
 using System.Threading;
 using SignalAcquisitionDemo.Styles;
-using Microsoft.Maps.MapControl.WPF;
 
 namespace SignalAcquisitionDemo.Views
 {
@@ -108,8 +106,8 @@ namespace SignalAcquisitionDemo.Views
             CreateSwitchRead(4, 4, 16);
             CreateSwitchWrite(4, 4, 16);
             SerialPortHelper.Init(ReceiveDataAction, Settings.Default.COM, Settings.Default.BaudRate);// portName: "COM2");
-            Task.Run(() =>StartDevice1Timer());
-            Task.Run(() => StartDevice2Timer());
+            new Task(() => StartDevice1Timer());
+            new Task(() => StartDevice2Timer());
 
             /*  Task.Run(() =>
               {
@@ -217,9 +215,10 @@ namespace SignalAcquisitionDemo.Views
                     var groupBox = new GroupBox
                     {
                         Margin = new Thickness(2),
+                        BorderBrush = new SolidColorBrush(Color.FromArgb(255, 76, 175, 80)),//设置为#4CAF50
                         Header = new TextBlock
                         {
-                            Text = $"CH{index}",
+                            Text = "CH"+index,
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             FontSize = 14
@@ -276,9 +275,10 @@ namespace SignalAcquisitionDemo.Views
                     var groupBox = new GroupBox
                     {
                         Margin = new Thickness(2),
+                        BorderBrush = new SolidColorBrush(Color.FromArgb(255, 76, 175, 80)),//设置为#4CAF50
                         Header = new TextBlock
                         {
-                            Text = $"1-CH{index}",
+                            Text = "1-CH" +index,
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             FontSize = 14
@@ -333,9 +333,10 @@ namespace SignalAcquisitionDemo.Views
                     var groupBox = new GroupBox
                     {
                         Margin = new Thickness(2),
+                        BorderBrush = new SolidColorBrush(Color.FromArgb(255, 76, 175, 80)),//设置为#4CAF50
                         Header = new TextBlock
                         {
-                            Text = $"{index/64+1}-CH{index}",
+                            Text = (index/64+1) +"-CH" +index,
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             FontSize = 14
@@ -364,7 +365,7 @@ namespace SignalAcquisitionDemo.Views
 
         private void ReceiveDataAction(DataType dataType, DataModel data)
         {
-            this.Dispatcher.Invoke(() =>
+            this.Dispatcher.Invoke(new Action(() =>
             {
                 try
                 {
@@ -400,9 +401,9 @@ namespace SignalAcquisitionDemo.Views
                 }
                 catch (Exception e)
                 {
-                    LogHelper.Trace($"更新界面数据失败！DataType:{data.DataType} R:{e.Message}");
+                    LogHelper.Trace("更新界面数据失败！DataType:"+data.DataType+ "R:"+e.Message);
                 }
-            });
+            }));
 
         }
 
@@ -885,7 +886,7 @@ Data1 = SetOriginalData(data, Data1, LineG1);*/
             }
             catch (Exception err)
             {
-                LogHelper.Error($"开始点击开始按钮异常！R:{err.Message}");
+                LogHelper.Error("开始点击开始按钮异常！R:"+err.Message);
                 MessageBox.Show("发生未知异常！请重启软件。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
@@ -903,7 +904,7 @@ Data1 = SetOriginalData(data, Data1, LineG1);*/
             }
             catch (Exception err)
             {
-                LogHelper.Error($"Cmb_Com_SelectionChanged异常！R:{err.Message}");
+                LogHelper.Error("Cmb_Com_SelectionChanged异常！R:"+err.Message);
                 MessageBox.Show("发生未知异常！请重启软件。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

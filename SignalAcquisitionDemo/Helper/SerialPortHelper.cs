@@ -38,7 +38,7 @@ namespace SignalAcquisitionDemo.Helper
             }
             catch (Exception e)
             {
-                LogHelper.Error($"初始化串口失败！R:{e.Message}");
+                LogHelper.Error("初始化串口失败！R:"+e.Message);
                 MessageBox.Show("初始化串口失败！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -52,7 +52,7 @@ namespace SignalAcquisitionDemo.Helper
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"串口打开异常! R: {ex.Message}。");
+                LogHelper.Error("串口打开异常! R: "+ex.Message);
             }
         }
 
@@ -61,12 +61,13 @@ namespace SignalAcquisitionDemo.Helper
             try
             {
                 // 关闭串口
-                serialPort?.Close();
+                if(serialPort!=null)
+                serialPort.Close();
                 LogHelper.Trace("串口关闭。");
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"串口关闭异常! R: {ex.Message}。");
+                LogHelper.Error("串口关闭异常! R: "+ex.Message);
             }
         }
 
@@ -89,12 +90,12 @@ namespace SignalAcquisitionDemo.Helper
 
                 // 发送数据
                 if (sendData != null && sendData.Length > 0)
-                    serialPort?.Write(sendData, 0, sendData.Length);
+                    serialPort.Write(sendData, 0, sendData.Length);
                 LogHelper.Trace("发送数据:{0}", sendData);
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"数据发送异常! R: {ex.Message}。");
+                LogHelper.Error("数据发送异常! R: "+ex.Message);
             }
         }
 
@@ -121,17 +122,18 @@ namespace SignalAcquisitionDemo.Helper
                             LogHelper.Trace("解析收到的包失败！ 包内容为：{0}", buffer);
                             return;
                         }
-                        ReceiveDataAction?.BeginInvoke(type, data, null, null);
+                        if(ReceiveDataAction!=null)
+                        ReceiveDataAction.BeginInvoke(type, data, null, null);
                     }
                     catch (Exception err)
                     {
-                        LogHelper.Error($"接收数据时发生异常。R:{err}");
+                        LogHelper.Error("接收数据时发生异常。R:"+err);
                     }
                 }
             }
             catch (Exception err)
             {
-                LogHelper.Error($"接收数据时发生异常。R:{err}");
+                LogHelper.Error("接收数据时发生异常。R:"+err);
             }
         }
 

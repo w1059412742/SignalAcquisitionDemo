@@ -8,18 +8,8 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme
-                    BaseTheme="Light"
-                    PrimaryColor="DeepPurple"
-                    SecondaryColor="Lime" />
-                <materialDesign:BundledTheme
-                    BaseTheme="Dark"
-                    PrimaryColor="Green"
-                    SecondaryColor="Lime" />
-                <!--<ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Dark.xaml" />-->
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+
                 <ResourceDictionary Source="Resources/Styles/ButtonStyle.xaml" />
-                <ResourceDictionary Source="Resources/Styles/ChartStyle.xaml" />
                 <ResourceDictionary Source="Resources/Styles/BulletButtonStyle.xaml" />
                 <ResourceDictionary Source="Resources/Styles/RecSwitch.xaml" />
                 <ResourceDictionary Source="Resources/Styles/StatusLight.xaml" />

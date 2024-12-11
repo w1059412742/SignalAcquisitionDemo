@@ -10,7 +10,7 @@
     Width="1800"
     Height="950"
     AllowsTransparency="True"
-    Background="{DynamicResource MaterialDesignPaper}"
+    Background="#303030"
     BorderBrush="RoyalBlue"
     BorderThickness="1"
     FontFamily="等线 (中文正文)"
@@ -18,23 +18,17 @@
     FontWeight="Bold"
     Loaded="Window_Loaded"
     ResizeMode="NoResize"
-    TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+    TextElement.Foreground="#F0F8F0"
     WindowStartupLocation="CenterOwner"
     WindowStyle="None"
     mc:Ignorable="d">
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Flipper.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="38" />
             <RowDefinition Height="427*" />
         </Grid.RowDefinitions>
-        <Border Background="{DynamicResource MaterialDesignPaper}" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+        <Border Background="#303030" MouseLeftButtonDown="Window_MouseLeftButtonDown">
             <Grid>
                 <Grid HorizontalAlignment="Left" />
                 <StackPanel Orientation="Horizontal">
@@ -47,7 +41,8 @@
                         VerticalAlignment="Center"
                         Content="上位机测试Demo"
                         FontSize="20"
-                        FontWeight="Bold" />
+                        FontWeight="Bold"
+                        Foreground="#F0F8F0" />
                 </StackPanel>
 
                 <!--  表头  -->

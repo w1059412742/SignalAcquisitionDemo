@@ -22,7 +22,7 @@ namespace SignalAcquisitionDemo.Helper
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"解析数据包失败！请开启更精细的log输出来抓取信息。R:{ex.Message}");
+                LogHelper.Error("解析数据包失败！请开启更精细的log输出来抓取信息。R:"+ex.Message);
                 return null;
             }
         }
