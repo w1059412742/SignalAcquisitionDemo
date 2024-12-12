@@ -30,6 +30,7 @@ using System.Windows.Shapes;
 using System.Threading;
 using SignalAcquisitionDemo.Styles;
 using Automation.BDaq;
+using System.Collections.Concurrent;
 
 namespace SignalAcquisitionDemo.Views
 {
@@ -47,10 +48,11 @@ namespace SignalAcquisitionDemo.Views
         public static bool isDevice2Receive = false;
         public static bool isDevice2TimerEnd = false;
         public readonly static int ChannelInterval = (int)(1000 / Settings.Default.frq);// 20Hz
-        public readonly static int ChannelShowCount = (int)(Settings.Default.frq / 2);
+        public readonly static int RefreshInterval = Settings.Default.refreshInterval;
         private static System.Timers.Timer device1Timer;
         private static System.Timers.Timer device2Timer;
         private static System.Timers.Timer diTimer;
+        private static System.Timers.Timer RefreshTimer;
 
         string deviceDescription = Settings.Default.deviceDescription;//"DemoDevice,BID#0";
         string profilePath = Settings.Default.profilePath;
@@ -122,6 +124,8 @@ namespace SignalAcquisitionDemo.Views
                 device2Timer.Elapsed += Device2Timer_Elapsed;
                 diTimer = new System.Timers.Timer(Settings.Default.diIntervalMs);
                 diTimer.Elapsed += DiTimer_Elapsed;
+                RefreshTimer = new System.Timers.Timer(500);
+                RefreshTimer.Elapsed += RefreshTimer_Elapsed;
                 CreateChannel(10, 8, 80);
                 CreateSwitchRead(4, 4, 16);
                 CreateSwitchWrite(4, 4, 16);
@@ -132,10 +136,43 @@ namespace SignalAcquisitionDemo.Views
                 Thread.Sleep(25);
                 (new Task(() => StartDevice2Timer())).Start();
                 diTimer.Start();
+                RefreshTimer.Start();
             }
             catch (Exception e)
             {
                 MessageBox.Show("初始化失败！\r\n" + e.Message);
+            }
+        }
+
+        private void RefreshTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            lock (this)
+            {
+                if (device1Data.Any())
+                {
+                    this.Dispatcher.Invoke(new Action(() =>
+                    {
+                        isDevice1Receive = true;
+                        for (int i = 0; i < 64; i++)
+                        {
+                            ChannelData[i].Value = device1Data.Select(row => row[i]).Average();
+                        }
+                    }));
+                    device1Data.Clear();
+                }
+
+                if (device2Data.Any())
+                {
+                    this.Dispatcher.Invoke(new Action(() =>
+                    {
+                        isDevice2Receive = true;
+                        for (int i = 64; i < ChannelData.Count; i++)
+                        {
+                            ChannelData[i].Value = device2Data.Select(row => row[i - 64]).Average();
+                        }
+                    }));
+                    device2Data.Clear();
+                }
             }
         }
 
@@ -469,52 +506,30 @@ namespace SignalAcquisitionDemo.Views
         {
             try
             {
-                switch (data.DataType)
+                lock (this)
                 {
-                    case DataType.PCI1622C:
-                        var pic1622CData = data as PCI1622C;
-                        if (pic1622CData == null)
-                            break;
-                        
-                        if (pic1622CData.DeviceNumber == 1)
-                        {
-                            device1Data.Add(pic1622CData.Data);
-                            if (device1Data.Count >= ChannelShowCount)
-                            {
-                                this.Dispatcher.Invoke(new Action(() =>
-                                {
-                                    isDevice1Receive = true;
-                                    for (int i = 0; i < 64; i++)
-                                    {
-                                        ChannelData[i].Value = device1Data.Select(row => row[i]).Average();
-                                    }
-                                }));
-                                device1Data.Clear();
-                            }
-                        }
-                        else if (pic1622CData.DeviceNumber == 2)
-                        {
-                            device2Data.Add(pic1622CData.Data);
-                            if (device2Data.Count >= ChannelShowCount)
-                            {
+                    switch (data.DataType)
+                    {
+                        case DataType.PCI1622C:
+                            var pic1622CData = data as PCI1622C;
+                            if (pic1622CData == null)
+                                break;
 
-                                this.Dispatcher.Invoke(new Action(() =>
-                                {
-                                    isDevice2Receive = true;
-                                    for (int i = 64; i < ChannelData.Count; i++)
-                                    {
-                                        ChannelData[i].Value = device2Data.Select(row => row[i - 64]).Average();
-                                    }
-                                }));
-                                device2Data.Clear();
+                            if (pic1622CData.DeviceNumber == 1)
+                            {
+                                device1Data.Add(pic1622CData.Data);
                             }
-                        }
-                        break;
-                    case DataType.PCI1730U:
-                        break;
-                    case DataType.Unknown:
-                    default:
-                        break;
+                            else if (pic1622CData.DeviceNumber == 2)
+                            {
+                                device2Data.Add(pic1622CData.Data);
+                            }
+                            break;
+                        case DataType.PCI1730U:
+                            break;
+                        case DataType.Unknown:
+                        default:
+                            break;
+                    }
                 }
             }
             catch (Exception e)
