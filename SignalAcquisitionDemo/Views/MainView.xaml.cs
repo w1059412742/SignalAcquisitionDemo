@@ -46,8 +46,8 @@ namespace SignalAcquisitionDemo.Views
         public static bool isDevice1TimerEnd = false;
         public static bool isDevice2Receive = false;
         public static bool isDevice2TimerEnd = false;
-        public readonly static int ChannelInterval = 1000 / Settings.Default.frq;// 20Hz
-        public readonly static int ChannelShowCount =Settings.Default.frq/2;
+        public readonly static int ChannelInterval = (int)(1000 / Settings.Default.frq);// 20Hz
+        public readonly static int ChannelShowCount = (int)(Settings.Default.frq / 2);
         private static System.Timers.Timer device1Timer;
         private static System.Timers.Timer device2Timer;
         private static System.Timers.Timer diTimer;
@@ -59,10 +59,10 @@ namespace SignalAcquisitionDemo.Views
         ErrorCode errorCode = ErrorCode.Success;
         InstantDiCtrl instantDiCtrl;
         InstantDoCtrl instantDoCtrl;
-        static List<float> device1Data = new List<float>();
-        static List<float> device2Data = new List<float>();
-        static int device1Index = 0;
-        static int device2Index = 0;
+        static List<List<float>> device1Data = new List<List<float>>();
+        static List<List<float>> device2Data = new List<List<float>>();
+
+        int index = 0;
 
         #region 属性
         public bool IsConnect
@@ -146,7 +146,7 @@ namespace SignalAcquisitionDemo.Views
 
         private void Device1Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            device1Timer.Stop();
+
             //isDevice1TimerEnd = true;
             //if (isDevice1Receive)
             StartDevice1Timer();
@@ -154,37 +154,27 @@ namespace SignalAcquisitionDemo.Views
 
         private void Device2Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            device2Timer.Stop();
             StartDevice2Timer();
         }
 
         private static void StartDevice1Timer()
         {
-            while (true)
+            while (!isConnect)
             {
-                if (!isConnect)
-                    Thread.Sleep(ChannelInterval);
-                else
-                    break;
+                Thread.Sleep(ChannelInterval);
             }
             SerialPortHelper.SendData(SendDataType.Device1);
-            device1Timer.Start();
             isDevice1Receive = false;
             isDevice1TimerEnd = false;
-
         }
 
         private static void StartDevice2Timer()
         {
-            while (true)
+            while (!isConnect)
             {
-                if (!isConnect)
-                    Thread.Sleep(ChannelInterval);
-                else
-                    break;
+                Thread.Sleep(ChannelInterval);
             }
             SerialPortHelper.SendData(SendDataType.Device2);
-            device2Timer.Start();
             isDevice2Receive = false;
             isDevice2TimerEnd = false;
         }
@@ -485,54 +475,38 @@ namespace SignalAcquisitionDemo.Views
                         var pic1622CData = data as PCI1622C;
                         if (pic1622CData == null)
                             break;
+                        
                         if (pic1622CData.DeviceNumber == 1)
                         {
-                            if (device1Data.Count < 64 && device1Data.Count > 0)
-                                device1Data.Clear();
-                            if (device1Data.Count < 64)
-                                device1Data.AddRange(pic1622CData.Data);
-                            else
-                                for (int i = 0; i < 64; i++)
-                                {
-                                    device1Data[i] = (pic1622CData.Data[i] + device1Data[i]) / 2;
-                                }
-                            device1Index++;
-                            if (device1Index >= ChannelShowCount)
+                            device1Data.Add(pic1622CData.Data);
+                            if (device1Data.Count >= ChannelShowCount)
                             {
-                                device1Index = 0;
                                 this.Dispatcher.Invoke(new Action(() =>
                                 {
                                     isDevice1Receive = true;
                                     for (int i = 0; i < 64; i++)
                                     {
-                                        ChannelData[i].Value = device1Data[i];
+                                        ChannelData[i].Value = device1Data.Select(row => row[i]).Average();
                                     }
                                 }));
+                                device1Data.Clear();
                             }
                         }
                         else if (pic1622CData.DeviceNumber == 2)
                         {
-                            if (device2Data.Count < 16 && device2Data.Count > 0)
-                                device2Data.Clear();
-                            if (device2Data.Count < 16)
-                                device2Data.AddRange(pic1622CData.Data);
-                            else
-                                for (int i = 0; i < 16; i++)
-                                {
-                                    device2Data[i] = (pic1622CData.Data[i] + device2Data[i]) / 2;
-                                }
-                            device2Index++;
-                            if (device2Index >= ChannelShowCount)
+                            device2Data.Add(pic1622CData.Data);
+                            if (device2Data.Count >= ChannelShowCount)
                             {
-                                device2Index = 0;
+
                                 this.Dispatcher.Invoke(new Action(() =>
                                 {
                                     isDevice2Receive = true;
                                     for (int i = 64; i < ChannelData.Count; i++)
                                     {
-                                        ChannelData[i].Value = device2Data[i - 64];
+                                        ChannelData[i].Value = device2Data.Select(row => row[i - 64]).Average();
                                     }
                                 }));
+                                device2Data.Clear();
                             }
                         }
                         break;
@@ -562,13 +536,18 @@ namespace SignalAcquisitionDemo.Views
                     Cmb_Com.IsEnabled = false;
                     SerialPortHelper.Open();
                     IsConnect = true;
+                    device1Timer.Start();
+                    device2Timer.Start();
                 }
                 else
                 {
                     this.Grb_AnalogRead.IsEnabled = false;
                     Cmb_Com.IsEnabled = true;
                     SerialPortHelper.Close();
+                    device1Timer.Stop();
+                    device2Timer.Stop();
                     IsConnect = false;
+
                 }
             }
             catch (Exception err)

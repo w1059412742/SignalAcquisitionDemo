@@ -82,10 +82,10 @@ namespace SignalAcquisitionDemo.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20")]
-        public int frq {
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public double frq {
             get {
-                return ((int)(this["frq"]));
+                return ((double)(this["frq"]));
             }
         }
     }
