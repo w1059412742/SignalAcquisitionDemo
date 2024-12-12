@@ -547,6 +547,12 @@ namespace SignalAcquisitionDemo.Views
             {
                 if (this.TB_Start.IsChecked == true)
                 {
+                    if (Cmb_Com.SelectedIndex < 0)
+                    {
+                        this.TB_Start.IsChecked = false;
+                        MessageBox.Show("请选择串口！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
                     this.Grb_AnalogRead.IsEnabled = true;
                     Cmb_Com.IsEnabled = false;
                     SerialPortHelper.Open();
@@ -559,8 +565,10 @@ namespace SignalAcquisitionDemo.Views
                     this.Grb_AnalogRead.IsEnabled = false;
                     Cmb_Com.IsEnabled = true;
                     SerialPortHelper.Close();
-                    device1Timer.Stop();
-                    device2Timer.Stop();
+                    if (device1Timer != null)
+                        device1Timer.Stop();
+                    if (device2Timer != null)
+                        device2Timer.Stop();
                     IsConnect = false;
 
                 }

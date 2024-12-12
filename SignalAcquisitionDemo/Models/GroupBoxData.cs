@@ -12,7 +12,7 @@ public class ChannelPropertyData : INotifyPropertyChanged
             if (_Value != value)
             {
                 _Value = value;
-                OnPropertyChanged(nameof(Value));
+                OnPropertyChanged("Value");
             }
         }
     }
@@ -38,7 +38,7 @@ public class SwitchPropertyData : INotifyPropertyChanged
             if (_Value != value)
             {
                 _Value = value;
-                OnPropertyChanged(nameof(Value));
+                OnPropertyChanged("Value");
             }
         }
     }

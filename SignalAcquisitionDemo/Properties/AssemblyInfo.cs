@@ -8,11 +8,11 @@ using System.Windows;
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("SignalAcquisitionDemo")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("与PCI-1622C-DE和PCI-1730U板卡通信的上位机数据显示软件")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Heitang")]
 [assembly: AssemblyProduct("SignalAcquisitionDemo")]
-[assembly: AssemblyCopyright("Copyright ©  2024")]
+[assembly: AssemblyCopyright("Copyright © Heitang 2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -1,4 +1,5 @@
-﻿using SignalAcquisitionDemo.Helper;
+﻿using LoggerHelp;
+using SignalAcquisitionDemo.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,8 +55,8 @@ namespace SignalAcquisitionDemo
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            //Logger.Info("UpperWaveform");
-            //增加处理
+            Logger.Info("SignalAcquisitionDemo");
+            //other code
         }
         private void btnMin_Click(object sender, RoutedEventArgs e)
         {
