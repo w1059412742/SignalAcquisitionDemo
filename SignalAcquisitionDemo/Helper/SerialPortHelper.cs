@@ -39,7 +39,7 @@ namespace SignalAcquisitionDemo.Helper
             catch (Exception e)
             {
                 LogHelper.Error("初始化串口失败！R:"+e.Message);
-                MessageBox.Show("初始化串口失败！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("初始化串口失败！" + e.Message, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
