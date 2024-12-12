@@ -8,5 +8,17 @@
     <Setting Name="BaudRate" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">115200</Value>
     </Setting>
+    <Setting Name="deviceDescription" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DemoDevice,BID#0</Value>
+    </Setting>
+    <Setting Name="profilePath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">../../../../../profile/DemoDevice.xml</Value>
+    </Setting>
+    <Setting Name="startPort" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="diIntervalMs" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

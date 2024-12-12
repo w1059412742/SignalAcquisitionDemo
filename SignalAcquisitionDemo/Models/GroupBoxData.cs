@@ -12,7 +12,7 @@ public class ChannelPropertyData : INotifyPropertyChanged
             if (_Value != value)
             {
                 _Value = value;
-               // OnPropertyChanged(nameof(_Value));
+                OnPropertyChanged(nameof(Value));
             }
         }
     }
@@ -21,8 +21,8 @@ public class ChannelPropertyData : INotifyPropertyChanged
 
     public virtual void OnPropertyChanged(string propertyName)
     {
-        if(PropertyChanged!=null)
-        PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        if (PropertyChanged != null)
+            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
 
@@ -38,7 +38,7 @@ public class SwitchPropertyData : INotifyPropertyChanged
             if (_Value != value)
             {
                 _Value = value;
-                //OnPropertyChanged(nameof(_Value));
+                OnPropertyChanged(nameof(Value));
             }
         }
     }
@@ -47,7 +47,7 @@ public class SwitchPropertyData : INotifyPropertyChanged
 
     public virtual void OnPropertyChanged(string propertyName)
     {
-        if(PropertyChanged!=null)
-        PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        if (PropertyChanged != null)
+            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

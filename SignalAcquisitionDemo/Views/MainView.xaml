@@ -6,6 +6,7 @@
     xmlns:local="clr-namespace:SignalAcquisitionDemo.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:styles="clr-namespace:SignalAcquisitionDemo.Styles"
+    Loaded="UserControl_Loaded"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
@@ -95,11 +96,7 @@
         </StackPanel>
 
 
-        <Grid
-            x:Name="Grid_Main"
-            Grid.Row="1"
-            Margin="5"
-            IsEnabled="false">
+        <Grid Grid.Row="1" Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="10*" />
                 <ColumnDefinition Width="6*" />
@@ -109,10 +106,12 @@
                 <RowDefinition Height="10*" />
             </Grid.RowDefinitions>
             <GroupBox
+                x:Name="Grb_AnalogRead"
                 Grid.RowSpan="3"
                 Margin="5,5,10,5"
                 BorderBrush="#00FF00"
-                BorderThickness="2">
+                BorderThickness="2"
+                IsEnabled="false">
                 <GroupBox.Header>
                     <TextBlock
                         Padding="0"

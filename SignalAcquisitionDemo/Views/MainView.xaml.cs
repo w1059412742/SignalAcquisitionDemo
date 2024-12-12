@@ -29,6 +29,7 @@ using System.IO.Ports;
 using System.Windows.Shapes;
 using System.Threading;
 using SignalAcquisitionDemo.Styles;
+using Automation.BDaq;
 
 namespace SignalAcquisitionDemo.Views
 {
@@ -47,6 +48,15 @@ namespace SignalAcquisitionDemo.Views
         public const int ChannelInterval = 1000 / 20;// 20Hz
         private static System.Timers.Timer device1Timer;
         private static System.Timers.Timer device2Timer;
+        private static System.Timers.Timer diTimer;
+
+        string deviceDescription = Settings.Default.deviceDescription;//"DemoDevice,BID#0";
+        string profilePath = Settings.Default.profilePath;
+        int startPort = 0;
+        int portCount = 2;
+        ErrorCode errorCode = ErrorCode.Success;
+        InstantDiCtrl instantDiCtrl;
+        InstantDoCtrl instantDoCtrl;
         #region 属性
         public bool IsConnect
         {
@@ -102,50 +112,24 @@ namespace SignalAcquisitionDemo.Views
             device1Timer.Elapsed += Device1Timer_Elapsed;
             device2Timer = new System.Timers.Timer(ChannelInterval);
             device2Timer.Elapsed += Device2Timer_Elapsed;
+            diTimer = new System.Timers.Timer(Settings.Default.diIntervalMs);
+            diTimer.Elapsed += DiTimer_Elapsed;
             CreateChannel(10, 8, 80);
             CreateSwitchRead(4, 4, 16);
             CreateSwitchWrite(4, 4, 16);
             SerialPortHelper.Init(ReceiveDataAction, Settings.Default.COM, Settings.Default.BaudRate);// portName: "COM2");
+            instantDiCtrl = new InstantDiCtrl();
+            instantDoCtrl = new InstantDoCtrl();
             new Task(() => StartDevice1Timer());
             new Task(() => StartDevice2Timer());
+            diTimer.Start();
 
-            /*  Task.Run(() =>
-              {
-                  while (true)
-                  {
-                      if (!isConnect)
-                      {
-                          Thread.Sleep(ChannelInterval);
-                          continue;
-                      }
-
-                      isDevice1Receive = false;
-                      while (!isDevice1Receive)
-                      {
-                          if(!isConnect)
-                              break;
-                          Thread.Sleep(5);
-                      }
-
-                      if (isDevice1Receive)
-                      {
-                          for (int i = 0; i < 64; i++)
-                          {
-                              ChannelData[i].TextValue = 0;
-                          }
-                          isDevice1Receive = false;
-                      }
-                      if (isDevice2Receive)
-                      {
-                          for (int i = 64; i < ChannelData.Count; i++)
-                          {
-                              ChannelData[i].TextValue = 0;
-                          }
-                      }
-                  }
-              });*/
         }
 
+        private void DiTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            ReadDi();
+        }
 
         private void Device1Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -233,19 +217,13 @@ namespace SignalAcquisitionDemo.Views
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                         }
-                        /*= new Rectangle()
-                        {
-                            //宽度绑定AutchHeight
-                            Height=50,
-                            Width=50,
-                    
-                            Fill = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Resources/Pictures/ledHigh.png")))
-                        }*/
                     };
                     var statusLight = (StatusLight)groupBox.Content;
                     statusLight.SetBinding(StatusLight.ValueProperty, new System.Windows.Data.Binding("Value")
                     {
-                        Source = groupData
+                        Source = groupData,
+                        Mode = BindingMode.TwoWay,
+                        UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
                     });
                     Grid.SetRow(groupBox, row);
                     Grid.SetColumn(groupBox, col);
@@ -292,18 +270,13 @@ namespace SignalAcquisitionDemo.Views
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                         }
-                        /*new TextBlock
-                        {
-                            //Text = groupData// (random.Next(0, 100000) / 1000.0).ToString("0.000"),
-                            HorizontalAlignment = HorizontalAlignment.Center,
-                            VerticalAlignment = VerticalAlignment.Center,
-                            FontSize = 18
-                        }*/
                     };
                     var statusLight = (StatusLight)groupBox.Content;
                     statusLight.SetBinding(StatusLight.ValueProperty, new System.Windows.Data.Binding("Value")
                     {
-                        Source = groupData
+                        Source = groupData,
+                        Mode = BindingMode.TwoWay,
+                        UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
                     });
                     statusLight.Click += StatusLightButtonClickHandler;// StatusLightMouseLeftButtonUpHandler;
                     Grid.SetRow(groupBox, row);
@@ -317,6 +290,7 @@ namespace SignalAcquisitionDemo.Views
         {
             var statusLight = sender as StatusLight;
             statusLight.Value = !statusLight.Value;
+            WriteDi();//发送数据
         }
 
         /*
@@ -415,13 +389,6 @@ namespace SignalAcquisitionDemo.Views
             return nestedGrid;
         }*/
 
-        private void StatusLightMouseLeftButtonUpHandler(object sender, MouseButtonEventArgs e)
-        {
-            var statusLight = sender as StatusLight;
-            statusLight.Value = !statusLight.Value;
-            //发送数据
-        }
-
         private void AddTextBlock(Grid grid, string text, int row, int column)
         {
             TextBlock textBlock = new TextBlock
@@ -519,7 +486,7 @@ namespace SignalAcquisitionDemo.Views
                                 isDevice2Receive = true;
                                 for (int i = 64; i < ChannelData.Count; i++)
                                 {
-                                    ChannelData[i].Value = pic1622CData.Data[i];
+                                    ChannelData[i].Value = pic1622CData.Data[i - 64];
                                 }
                             }
                             break;
@@ -1004,14 +971,14 @@ Data1 = SetOriginalData(data, Data1, LineG1);*/
             {
                 if (this.TB_Start.IsChecked == true)
                 {
-                    this.Grid_Main.IsEnabled = true;
+                    this.Grb_AnalogRead.IsEnabled = true;
                     Cmb_Com.IsEnabled = false;
                     SerialPortHelper.Open();
-                 
+
                 }
                 else
                 {
-                    this.Grid_Main.IsEnabled = false;
+                    this.Grb_AnalogRead.IsEnabled = false;
                     Cmb_Com.IsEnabled = true;
                     SerialPortHelper.Close();
                     IsConnect = false;
@@ -1042,6 +1009,55 @@ Data1 = SetOriginalData(data, Data1, LineG1);*/
             }
         }
 
+        public static bool BioFailed(ErrorCode err)
+        {
+            return err < ErrorCode.Success && err >= ErrorCode.ErrorHandleNotValid;
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            instantDiCtrl.SelectedDevice = new DeviceInformation(deviceDescription);
+            instantDoCtrl.SelectedDevice = new DeviceInformation(deviceDescription);
+            //if (BioFailed(errorCode))
+            //{
+            //    MessageBox.Show("设备连接失败！请检查设备并重启软件。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            //    return;
+            //}
+            ReadDi();
+        }
+
+        private void ReadDi()
+        {
+            byte[] buffer = new byte[64];
+            errorCode = instantDiCtrl.Read(startPort, portCount, buffer);
+            //errorCode = instantDiCtrl.ReadBit(startPort, bit, out data);
+            if (!BioFailed(errorCode))
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    SwitchReadData[i].Value = (buffer[0] & (1 << i)) != 0;
+                    SwitchReadData[i + 8].Value = (buffer[1] & (1 << i)) != 0;
+                }
+            }
+            else
+                LogHelper.Trace("ReadDi失败！R:" + errorCode.ToString());
+        }
+
+        private void WriteDi()
+        {
+            byte[] buffer = new byte[64];
+            for (int i = 0; i < 8; i++)
+            {
+                if (SwitchReadData[i].Value)
+                    buffer[0] |= (byte)(1 << i);
+                if (SwitchReadData[i + 8].Value)
+                    buffer[1] |= (byte)(1 << i);
+            }
+            errorCode = instantDoCtrl.Write(startPort, portCount, buffer);
+            if(BioFailed(errorCode))
+                LogHelper.Trace("WriteDi失败！R:" + errorCode.ToString());
+        }
 
     }
+
 }
