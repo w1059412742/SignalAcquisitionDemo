@@ -103,7 +103,7 @@ namespace SignalAcquisitionDemo.Views
             device2Timer = new System.Timers.Timer(ChannelInterval);
             device2Timer.Elapsed += Device2Timer_Elapsed;
             CreateChannel(10, 8, 80);
-            CreateSwitchRead();
+            CreateSwitchRead(4, 4, 16);
             CreateSwitchWrite(4, 4, 16);
             SerialPortHelper.Init(ReceiveDataAction, Settings.Default.COM, Settings.Default.BaudRate);// portName: "COM2");
             new Task(() => StartDevice1Timer());
@@ -191,6 +191,135 @@ namespace SignalAcquisitionDemo.Views
             }
         }
 
+
+        private void CreateSwitchRead(int rows, int columns, int max)
+        {
+
+            for (int i = 0; i < rows; i++)
+            {
+                Grid_SwitchRead.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            }
+
+            for (int j = 0; j < columns; j++)
+            {
+                Grid_SwitchRead.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            }
+
+
+            for (int row = 0; row < rows; row++)
+            {
+                for (int col = 0; col < columns; col++)
+                {
+                    var index = row * columns + col + 1;
+                    if (index > max)
+                        break;
+                    var groupData = new SwitchPropertyData() { Value = false };
+                    SwitchReadData.Add(groupData);
+                    var groupBox = new GroupBox
+                    {
+                        Margin = new Thickness(5),
+                        BorderBrush = new SolidColorBrush(Color.FromArgb(255, 76, 175, 80)),//设置为#4CAF50
+                        Header = new TextBlock
+                        {
+                            Text = "CH" + index,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Center,
+                            FontSize = 14
+                        },
+                        Content = new StatusLight()
+                        {
+                            Width = 55,
+                            Height = 55,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Center,
+                        }
+                        /*= new Rectangle()
+                        {
+                            //宽度绑定AutchHeight
+                            Height=50,
+                            Width=50,
+                    
+                            Fill = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Resources/Pictures/ledHigh.png")))
+                        }*/
+                    };
+                    var statusLight = (StatusLight)groupBox.Content;
+                    statusLight.SetBinding(StatusLight.ValueProperty, new System.Windows.Data.Binding("Value")
+                    {
+                        Source = groupData
+                    });
+                    Grid.SetRow(groupBox, row);
+                    Grid.SetColumn(groupBox, col);
+                    Grid_SwitchRead.Children.Add(groupBox);
+                }
+            }
+        }
+        private void CreateSwitchWrite(int rows, int columns, int max)
+        {
+            for (int i = 0; i < rows; i++)
+            {
+                Grid_SwitchWrite.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            }
+
+            for (int j = 0; j < columns; j++)
+            {
+                Grid_SwitchWrite.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            }
+
+            for (int row = 0; row < rows; row++)
+            {
+                for (int col = 0; col < columns; col++)
+                {
+                    var index = row * columns + col + 1;
+                    if (index > max)
+                        break;
+                    var groupData = new SwitchPropertyData() { Value = false };
+                    SwitchWriteData.Add(groupData);
+                    var groupBox = new GroupBox
+                    {
+                        Margin = new Thickness(5),
+                        BorderBrush = new SolidColorBrush(Color.FromArgb(255, 76, 175, 80)),//设置为#4CAF50
+                        Header = new TextBlock
+                        {
+                            Text = "CH" + index,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Center,
+                            FontSize = 14
+                        },
+                        Content = new StatusLight()
+                        {
+                            Width = 55,
+                            Height = 55,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Center,
+                        }
+                        /*new TextBlock
+                        {
+                            //Text = groupData// (random.Next(0, 100000) / 1000.0).ToString("0.000"),
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Center,
+                            FontSize = 18
+                        }*/
+                    };
+                    var statusLight = (StatusLight)groupBox.Content;
+                    statusLight.SetBinding(StatusLight.ValueProperty, new System.Windows.Data.Binding("Value")
+                    {
+                        Source = groupData
+                    });
+                    statusLight.Click += StatusLightButtonClickHandler;// StatusLightMouseLeftButtonUpHandler;
+                    Grid.SetRow(groupBox, row);
+                    Grid.SetColumn(groupBox, col);
+                    Grid_SwitchWrite.Children.Add(groupBox);
+                }
+            }
+        }
+
+        private void StatusLightButtonClickHandler(object sender, RoutedEventArgs e)
+        {
+            var statusLight = sender as StatusLight;
+            statusLight.Value = !statusLight.Value;
+        }
+
+        /*
         private void CreateSwitchRead()//int rows, int columns, int max)
         {
             var grid1 = AddSwitchChannel(0);
@@ -265,13 +394,6 @@ namespace SignalAcquisitionDemo.Views
                 // 添加状态灯
                 for (int j = 1; j <= 8; j++)
                 {
-                    /*Ellipse statusLight = new Ellipse
-                    {
-                        Width = 20,
-                        Height = 20,
-                        Fill = new SolidColorBrush(Colors.Green), // 示例为绿色状态灯
-                        Margin = new Thickness(5)
-                    };*/
                     StatusLight statusLight = new StatusLight()
                     {
                         Width = 30,
@@ -291,9 +413,9 @@ namespace SignalAcquisitionDemo.Views
             }
 
             return nestedGrid;
-        }
+        }*/
 
-        private void StatusLightMouseLeftButtonDownHandler(object sender, MouseButtonEventArgs e)
+        private void StatusLightMouseLeftButtonUpHandler(object sender, MouseButtonEventArgs e)
         {
             var statusLight = sender as StatusLight;
             statusLight.Value = !statusLight.Value;
@@ -340,21 +462,22 @@ namespace SignalAcquisitionDemo.Views
                     ChannelData.Add(groupData);
                     var groupBox = new GroupBox
                     {
-                        Margin = new Thickness(2),
+                        Margin = new Thickness(5),
                         BorderBrush = new SolidColorBrush(Color.FromArgb(255, 76, 175, 80)),//设置为#4CAF50
                         Header = new TextBlock
                         {
                             Text = (index / 64 + 1) + "-CH" + index,
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
-                            FontSize = 14
+                            FontSize = 16
                         },
                         Content = new TextBlock
                         {
                             //Text = (random.Next(0, 100000) / 1000.0).ToString("0.000"),
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
-                            FontSize = 18
+                            FontSize = 22,
+                            Foreground = new SolidColorBrush(Colors.Green)
                         }
                     };
                     // 绑定TextBlock的Text属性
@@ -881,12 +1004,14 @@ Data1 = SetOriginalData(data, Data1, LineG1);*/
             {
                 if (this.TB_Start.IsChecked == true)
                 {
-                    SerialPortHelper.Open();
+                    this.Grid_Main.IsEnabled = true;
                     Cmb_Com.IsEnabled = false;
-                    //InitLinG();
+                    SerialPortHelper.Open();
+                 
                 }
                 else
                 {
+                    this.Grid_Main.IsEnabled = false;
                     Cmb_Com.IsEnabled = true;
                     SerialPortHelper.Close();
                     IsConnect = false;

@@ -32,10 +32,10 @@
             <Grid>
                 <Grid HorizontalAlignment="Left" />
                 <StackPanel Orientation="Horizontal">
-                    <Image
+                    <!--<Image
                         Width="30"
                         Margin="5,0,0,0"
-                        Source="/Resources/Pictures/icon.ico" />
+                        Source="/Resources/Pictures/icon.ico" />-->
                     <Label
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"

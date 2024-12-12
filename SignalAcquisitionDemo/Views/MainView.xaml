@@ -14,14 +14,15 @@
         </Grid.RowDefinitions>
         <StackPanel Background="#989898" Orientation="Horizontal">
             <styles:RecSwitch
-                x:Name="TB_Start" Click="TB_Start_Click"
+                x:Name="TB_Start"
                 Width="120"
                 Height="Auto"
                 Margin="10,0"
-                CheckedText="开始"
+                CheckedText="打开"
+                Click="TB_Start_Click"
                 FontSize="13"
                 IsChecked="False"
-                Text="结束"
+                Text="关闭"
                 ToolTip="运行状态" />
 
             <!--<styles:BulletButton
@@ -49,6 +50,14 @@
         </StackPanel>
 
         <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+            <Rectangle
+                Width="140"
+                Height="60"
+                Margin="30,0">
+                <Rectangle.Fill>
+                    <ImageBrush ImageSource="pack://application:,,,/SignalAcquisitionDemo;component/Resources/Pictures/background.png" />
+                </Rectangle.Fill>
+            </Rectangle>
             <Label
                 VerticalAlignment="Center"
                 VerticalContentAlignment="Center"
@@ -79,15 +88,21 @@
                 Height="35"
                 Margin="20,0"
                 HorizontalAlignment="Right"
+                FalseBrush="Red"
                 ToolTip="连接状态"
+                TrueBrush="#FF1BD600"
                 Value="False" />
         </StackPanel>
 
 
-        <Grid Grid.Row="1" Margin="5">
+        <Grid
+            x:Name="Grid_Main"
+            Grid.Row="1"
+            Margin="5"
+            IsEnabled="false">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="10*" />
-                <ColumnDefinition Width="10*" />
+                <ColumnDefinition Width="6*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="10*" />
@@ -185,11 +200,11 @@
                     HorizontalScrollBarVisibility="Auto"
                     VerticalScrollBarVisibility="Auto">
                     <Grid x:Name="Grid_SwitchRead" Margin="0">
-                        <Grid.ColumnDefinitions>
+                        <!--<Grid.ColumnDefinitions>
                             <ColumnDefinition Width="10*" />
 
                             <ColumnDefinition Width="10*" />
-                        </Grid.ColumnDefinitions>
+                        </Grid.ColumnDefinitions>-->
                     </Grid>
                 </ScrollViewer>
             </GroupBox>
@@ -213,15 +228,15 @@
                 </GroupBox.Header>
                 <ScrollViewer
                     Margin="0"
-                    Padding="0"
+                    Padding="8"
                     HorizontalScrollBarVisibility="Auto"
                     VerticalScrollBarVisibility="Auto">
                     <Grid x:Name="Grid_SwitchWrite" Margin="0">
-                        <Grid.ColumnDefinitions>
+                        <!--<Grid.ColumnDefinitions>
                             <ColumnDefinition Width="10*" />
 
                             <ColumnDefinition Width="10*" />
-                        </Grid.ColumnDefinitions>
+                        </Grid.ColumnDefinitions>-->
                     </Grid>
                 </ScrollViewer>
             </GroupBox>
