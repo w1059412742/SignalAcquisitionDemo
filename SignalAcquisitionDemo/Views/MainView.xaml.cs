@@ -54,7 +54,7 @@ namespace SignalAcquisitionDemo.Views
         private static System.Timers.Timer diTimer;
         private static System.Timers.Timer RefreshTimer;
 
-        string deviceDescription = Settings.Default.deviceDescription;//"DemoDevice,BID#0";
+        string deviceDescription = "PCI-1730,BID#0"; //Settings.Default.deviceDescription;//"DemoDevice,BID#0";
         string profilePath = Settings.Default.profilePath;
         int startPort = 0;
         int portCount = 2;

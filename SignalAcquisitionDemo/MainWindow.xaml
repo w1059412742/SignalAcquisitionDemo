@@ -72,6 +72,6 @@
 
             </Grid>
         </Border>
-        <views:MainView x:Name="MainView" Grid.Row="1" />
+        <views:MainView x:Name="MainView" Grid.Row="1"/>
     </Grid>
 </Window>
