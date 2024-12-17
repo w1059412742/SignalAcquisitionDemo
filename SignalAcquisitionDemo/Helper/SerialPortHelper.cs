@@ -81,9 +81,6 @@ namespace SignalAcquisitionDemo.Helper
                     case SendDataType.Device1:
                         sendData = AnalysisData.SendDeviceData(1);
                         break;
-                    case SendDataType.Device2:
-                        sendData = AnalysisData.SendDeviceData(2);
-                        break;
                     default:
                         break;
                 }

@@ -34,8 +34,8 @@ namespace SignalAcquisitionDemo.Helper
                 dataModel.DataType = DataType.PCI1622C;
                 dataModel.DeviceNumber = receivedData[0];
                 dataModel.DataLength = receivedData[2];
-                //dataModel.Data = GetPCI1622CData(receivedData.Skip(3).Take(dataModel.DataLength).ToArray());
-                dataModel.Data = GetPCI1622CData(receivedData.Skip(3).Take((receivedData[0]==1?64:16)*4).ToArray());
+                dataModel.Data = GetPCI1622CData(receivedData.Skip(3).Take(dataModel.DataLength).ToArray());
+                //dataModel.Data = GetPCI1622CData(receivedData.Skip(3).Take((receivedData[0]==1?64:16)*4).ToArray());
                 return dataModel;
             }
             return null;
@@ -79,10 +79,7 @@ namespace SignalAcquisitionDemo.Helper
         {
             var data = new List<byte>();
             if (deviceNumber == 1)
-                data.AddRange(new byte[] { 0x01, 0x03, 0x00, 0x00, 0x00, 0x7F });
-            else if (deviceNumber == 2)
-                data.AddRange(new byte[] { 0x02, 0x03, 0x00, 0x00, 0x00, 0x1F });
-
+                data.AddRange(new byte[] { 0x01, 0x03, 0x00, 0x00, 0x00, 0x1F });
             if (data.Count > 0)
             {
                 var crc = Crc(data.ToArray(), (byte)data.Count);

@@ -50,7 +50,6 @@ namespace SignalAcquisitionDemo.Views
         public readonly static int ChannelInterval = (int)(1000 / Settings.Default.frq);// 20Hz
         public readonly static int RefreshInterval = Settings.Default.refreshInterval;
         private static System.Timers.Timer device1Timer;
-        private static System.Timers.Timer device2Timer;
         private static System.Timers.Timer diTimer;
         private static System.Timers.Timer RefreshTimer;
 
@@ -62,7 +61,6 @@ namespace SignalAcquisitionDemo.Views
         InstantDiCtrl instantDiCtrl;
         InstantDoCtrl instantDoCtrl;
         static List<List<float>> device1Data = new List<List<float>>();
-        static List<List<float>> device2Data = new List<List<float>>();
 
         int index = 0;
 
@@ -120,13 +118,11 @@ namespace SignalAcquisitionDemo.Views
                 IsConnect = false;
                 device1Timer = new System.Timers.Timer(ChannelInterval);
                 device1Timer.Elapsed += Device1Timer_Elapsed;
-                device2Timer = new System.Timers.Timer(ChannelInterval);
-                device2Timer.Elapsed += Device2Timer_Elapsed;
                 diTimer = new System.Timers.Timer(Settings.Default.diIntervalMs);
                 diTimer.Elapsed += DiTimer_Elapsed;
                 RefreshTimer = new System.Timers.Timer(500);
                 RefreshTimer.Elapsed += RefreshTimer_Elapsed;
-                CreateChannel(10, 8, 80);
+                CreateChannel(4, 4, 16);
                 CreateSwitchRead(4, 4, 16);
                 CreateSwitchWrite(4, 4, 16);
                 this.Cmb_Com.SelectedIndex = Items.IndexOf(Settings.Default.COM);
@@ -153,25 +149,12 @@ namespace SignalAcquisitionDemo.Views
                     this.Dispatcher.Invoke(new Action(() =>
                     {
                         isDevice1Receive = true;
-                        for (int i = 0; i < 64; i++)
+                        for (int i = 0; i < 16; i++)
                         {
                             ChannelData[i].Value = device1Data.Select(row => row[i]).Average();
                         }
                     }));
                     device1Data.Clear();
-                }
-
-                if (device2Data.Any())
-                {
-                    this.Dispatcher.Invoke(new Action(() =>
-                    {
-                        isDevice2Receive = true;
-                        for (int i = 64; i < ChannelData.Count; i++)
-                        {
-                            ChannelData[i].Value = device2Data.Select(row => row[i - 64]).Average();
-                        }
-                    }));
-                    device2Data.Clear();
                 }
             }
         }
@@ -189,11 +172,6 @@ namespace SignalAcquisitionDemo.Views
             StartDevice1Timer();
         }
 
-        private void Device2Timer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            StartDevice2Timer();
-        }
-
         private static void StartDevice1Timer()
         {
             while (!isConnect)
@@ -204,18 +182,6 @@ namespace SignalAcquisitionDemo.Views
             isDevice1Receive = false;
             isDevice1TimerEnd = false;
         }
-
-        private static void StartDevice2Timer()
-        {
-            while (!isConnect)
-            {
-                Thread.Sleep(ChannelInterval);
-            }
-            SerialPortHelper.SendData(SendDataType.Device2);
-            isDevice2Receive = false;
-            isDevice2TimerEnd = false;
-        }
-
 
         private void CreateSwitchRead(int rows, int columns, int max)
         {
@@ -334,116 +300,6 @@ namespace SignalAcquisitionDemo.Views
             WriteDi();//发送数据
         }
 
-        /*
-        private void CreateSwitchRead()//int rows, int columns, int max)
-        {
-            var grid1 = AddSwitchChannel(0);
-            Grid.SetColumn(grid1, 0);
-            Grid_SwitchRead.Children.Add(grid1);
-            var grid2 = AddSwitchChannel(8);
-            Grid.SetColumn(grid2, 1);
-            Grid_SwitchRead.Children.Add(grid2);
-        }
-
-        private void CreateSwitchWrite(int rows, int columns, int max)
-        {
-            var grid1 = AddSwitchChannel(0, true);
-            Grid.SetColumn(grid1, 0);
-            Grid_SwitchWrite.Children.Add(grid1);
-            var grid2 = AddSwitchChannel(8, true);
-            Grid.SetColumn(grid2, 1);
-            Grid_SwitchWrite.Children.Add(grid2);
-        }
-
-        private Grid AddSwitchChannel(int startIndex = 0, bool canClick = false)
-        {
-            // 创建嵌套Grid
-            Grid nestedGrid = new Grid
-            {
-                Margin = new Thickness(10),
-                //Background = new SolidColorBrush(Colors.LightGray)
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Stretch
-            };
-
-            // 定义行和列
-            for (int i = 0; i < 9; i++)
-            {
-                nestedGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            }
-
-            for (int j = 0; j < 11; j++)
-            {
-                double w = 2;
-
-                if (j == 10)
-                    w = 4;
-                else if (j == 5)
-                    w = 0.5;
-                else
-                    w = 2;
-                nestedGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(w, GridUnitType.Star) });
-            }
-
-            // 添加标题行内容
-            AddTextBlock(nestedGrid, "通道", 0, 0);
-
-            for (int j = 1; j <= 4; j++)
-            {
-                AddTextBlock(nestedGrid, (9 - j).ToString(), 0, j);
-            }
-
-            for (int j = 6; j <= 9; j++)
-            {
-                AddTextBlock(nestedGrid, (9 - j + 1).ToString(), 0, j);
-            }
-
-            AddTextBlock(nestedGrid, "Hex", 0, 10);
-
-            // 添加其余8行内容
-            for (int i = 1; i <= 8; i++)
-            {
-                // 添加通道编号
-                AddTextBlock(nestedGrid, (startIndex + i).ToString(), i, 0);
-
-                // 添加状态灯
-                for (int j = 1; j <= 8; j++)
-                {
-                    StatusLight statusLight = new StatusLight()
-                    {
-                        Width = 30,
-                        Height = 30,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        VerticalAlignment = VerticalAlignment.Center,
-                    };
-                    if (canClick)
-                        statusLight.MouseDoubleClick += StatusLightMouseLeftButtonDownHandler;
-                    Grid.SetRow(statusLight, i);
-                    Grid.SetColumn(statusLight, j >= 5 ? j + 1 : j);
-                    nestedGrid.Children.Add(statusLight);
-                }
-
-                // 添加十六进制数值
-                AddTextBlock(nestedGrid, "0x" + (i * 10).ToString("X2"), i, 10);
-            }
-
-            return nestedGrid;
-        }*/
-
-        private void AddTextBlock(Grid grid, string text, int row, int column)
-        {
-            TextBlock textBlock = new TextBlock
-            {
-                Text = text,
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0)
-            };
-
-            Grid.SetRow(textBlock, row);
-            Grid.SetColumn(textBlock, column);
-            grid.Children.Add(textBlock);
-        }
 
 
         private void CreateChannel(int rows, int columns, int max)
@@ -519,10 +375,7 @@ namespace SignalAcquisitionDemo.Views
                             {
                                 device1Data.Add(pic1622CData.Data);
                             }
-                            else if (pic1622CData.DeviceNumber == 2)
-                            {
-                                device2Data.Add(pic1622CData.Data);
-                            }
+                            
                             break;
                         case DataType.PCI1730U:
                             break;
@@ -558,7 +411,7 @@ namespace SignalAcquisitionDemo.Views
                     SerialPortHelper.Open();
                     IsConnect = true;
                     device1Timer.Start();
-                    device2Timer.Start();
+                  
                 }
                 else
                 {
@@ -567,8 +420,6 @@ namespace SignalAcquisitionDemo.Views
                     SerialPortHelper.Close();
                     if (device1Timer != null)
                         device1Timer.Stop();
-                    if (device2Timer != null)
-                        device2Timer.Stop();
                     IsConnect = false;
 
                 }
